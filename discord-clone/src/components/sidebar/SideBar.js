@@ -3,8 +3,13 @@ import React from "react";
 import SideBarChannel from './sideBarChannelList/SideBarChannel'
 import "./SideBar.css";
 import { Avatar } from "@material-ui/core";
+import { useSelector } from "react-redux";
+import { selectUser } from "../../features/userSlice";
+import { auth } from "../../dbConfig/firebase";
 
 const SideBar = () => {
+  const user = useSelector(selectUser);
+
   return (
     <div className="sideBar">
       <div className="sideBar__top">
@@ -40,10 +45,10 @@ const SideBar = () => {
       </div>
       
       <div className="sideBar__profile">
-        <Avatar />
+        <Avatar onClick={() => auth.signOut()} src={user.photo} />
         <div className="sideBar__profileInfo">
-          <h3>@Dalo</h3>
-          <p>#thisIsMyId</p>
+          <h3>{user.name.substring(0, 7)}</h3>
+          <p>#{user.uid.substring(0, 5)}</p>
         </div>
 
         <div className="sideBar__profileIcons">
