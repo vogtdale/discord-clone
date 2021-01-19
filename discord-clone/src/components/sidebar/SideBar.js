@@ -1,14 +1,47 @@
-import { Add, Call, ExpandMore, Headset, InfoOutlined, Mic, Settings, SignalCellularAlt } from "@material-ui/icons";
-import React from "react";
-import SideBarChannel from './sideBarChannelList/SideBarChannel'
+/* eslint-disable no-undef */
+import {
+  Add,
+  Call,
+  ExpandMore,
+  Headset,
+  InfoOutlined,
+  Mic,
+  Settings,
+  SignalCellularAlt,
+} from "@material-ui/icons";
+import React, { useState, useEffect } from "react";
+import SideBarChannel from "../sideBarChannelList/SideBarChannel";
 import "./SideBar.css";
 import { Avatar } from "@material-ui/core";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { selectUser } from "../../features/userSlice";
-import { auth } from "../../dbConfig/firebase";
+import db, { auth } from "../../dbConfig/firebase";
+import {setChannelInfo} from '../../features/chatSlice'
 
 const SideBar = () => {
+  const dispatch = useDispatch()
   const user = useSelector(selectUser);
+  const [channels, setChannels] = useState([]);
+
+  useEffect(() => {
+    db.collection('channels').onSnapshot(snapshot => {
+      setChannels(snapshot.docs.map(doc => ({
+          id: doc.id,
+          channel: doc.data()
+      })))
+  })
+  }, []);
+
+  const handleAddChannel = (e) => {
+    e.preventDefault()
+    const channelName = prompt("Enter a new Channel Name");
+
+    if (channelName) {
+      db.collection("channels").add({
+        channelName: channelName,
+      });
+    }
+  };
 
   return (
     <div className="sideBar">
@@ -23,12 +56,21 @@ const SideBar = () => {
             <ExpandMore />
             <h4>Text channels</h4>
           </div>
-          <Add className="sideBar__addChannels"/>
+          <Add onClick={handleAddChannel} className="sideBar__addChannels" />
         </div>
 
-        <div className="sideBar__channelsList">
-          <SideBarChannel />
-      </div>
+        <div className="sideBar__channelsList" >
+          {channels.map(({ id, channel}) => (
+            
+            <SideBarChannel
+              key={id}
+              id={id}
+              channelName={channel.channelName}
+              
+            />
+            
+          ))}
+        </div>
       </div>
 
       <div className="sideBar__voice">
@@ -43,7 +85,7 @@ const SideBar = () => {
           <Call />
         </div>
       </div>
-      
+
       <div className="sideBar__profile">
         <Avatar onClick={() => auth.signOut()} src={user.photo} />
         <div className="sideBar__profileInfo">
@@ -57,10 +99,6 @@ const SideBar = () => {
           <Settings />
         </div>
       </div>
-
-
-
-      
     </div>
   );
 };
